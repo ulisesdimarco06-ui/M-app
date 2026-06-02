@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Asesor Premium Lite · Estrategia de Deudas</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:system-ui,'Segoe UI',sans-serif;background:#0a0c12;padding:12px 10px 40px;color:#e8edf5;font-size:14px}
+        .container{max-width:600px;margin:0 auto}
+        .card{background:#141822;border-radius:22px;padding:14px;margin-bottom:14px;border:1px solid #2a2f3f}
+        .card h2{font-size:1.1rem;border-left:3px solid #d4af37;padding-left:10px;margin-bottom:10px;color:#f0f3fa}
+        .row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;align-items:end}
+        .col{flex:1;min-width:90px}
+        label{display:block;font-size:0.65rem;font-weight:600;color:#8a93b0;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.5px}
+        input,select{width:100%;padding:10px;border-radius:14px;border:1px solid #2a2f3f;background:#0f1219;color:#f0f3fa;font-size:0.85rem;font-family:inherit}
+        input:focus,select:focus{outline:none;border-color:#d4af37}
+        button{background:#d4af37;border:none;color:#0a0c12;font-weight:700;padding:8px 14px;border-radius:30px;font-size:0.75rem;cursor:pointer}
+        button.sm{padding:5px 10px;font-size:0.7rem}
+        button.sec{background:#2a3a5a;color:#fff}
+        button.del{background:#7a2e3a;color:#fff}
+        button.outline{background:transparent;border:1px solid #d4af37;color:#d4af37}
+        .badge{background:#2a2f3f;padding:3px 8px;border-radius:30px;font-size:0.6rem;color:#d4af37}
+        .deuda-item{background:#0f1219;border:1px solid #2a2f3f;border-radius:18px;padding:10px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:5px;font-size:0.75rem}
+        .deuda-info{flex:1;min-width:140px}
+        .deuda-nombre{font-weight:700;color:#d4af37;font-size:0.8rem}
+        .deuda-dato{color:#9aa4c2;font-size:0.65rem}
+        .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+        .kpi{background:#0f1219;border-radius:16px;padding:10px;text-align:center;border:1px solid #2a2f3f}
+        .kpi-label{font-size:0.6rem;text-transform:uppercase;color:#8a93b0}
+        .kpi-value{font-size:1.2rem;font-weight:700;color:#d4af37}
+        .flex{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+        hr{border:none;height:1px;background:#2a2f3f;margin:10px 0}
+        .msg{font-size:0.7rem;background:#0f1219;padding:8px;border-radius:14px;color:#b9c3db;margin-top:8px}
+        .warn{color:#c97e2a}
+        .ok{color:#4a9eff}
+        canvas{max-height:240px;width:100%;margin-top:8px}
+        .tag{display:inline-block;background:#1e2432;padding:2px 8px;border-radius:20px;font-size:0.6rem;margin:2px}
+        .tag.uva{color:#4a9eff;border:1px solid #4a9eff}
+        .tag.usd{color:#85bb65;border:1px solid #85bb65}
+        .tag.pesos{color:#d4af37;border:1px solid #d4af37}
+        input[type=range]{accent-color:#d4af37;height:4px}
+        @media(max-width:400px){.kpi-value{font-size:1rem}.deuda-item{flex-direction:column;align-items:start}}
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- HEADER KPIS -->
+    <div class="card" style="border-bottom:2px solid #d4af37">
+        <div class="flex"><span>⭐ <strong>Asesor Premium ARG</strong></span><span class="badge" id="badgeEstrategia">Avalancha</span></div>
+        <div class="kpi-grid">
+            <div class="kpi"><div class="kpi-label">Patrimonio</div><div class="kpi-value" id="kpiPatrimonio">$0</div></div>
+            <div class="kpi"><div class="kpi-label">Flujo Libre</div><div class="kpi-value" id="kpiFlujo">$0</div></div>
+            <div class="kpi"><div class="kpi-label">Deuda Total</div><div class="kpi-value" id="kpiDeuda">$0</div></div>
+            <div class="kpi"><div class="kpi-label">Superávit</div><div class="kpi-value" id="kpiSuperavit">$0</div></div>
+        </div>
+        <div class="flex"><span>Salud financiera: <strong id="txtSalud">—</strong></span><span id="txtInflacion" style="font-size:0.65rem;color:#8a93b0"></span></div>
+    </div>
+
+    <!-- FLUJO DE CAJA -->
+    <div class="card">
+        <h2>💰 Flujo de Caja</h2>
+        <div class="row">
+            <div class="col"><label>Ingreso neto/mes</label><input type="text" id="inIngreso" value="250000" class="m"></div>
+            <div class="col"><label>Gastos básicos</label><input type="text" id="inGastos" value="120000" class="m"></div>
+        </div>
+        <div class="row">
+            <div class="col"><label>Inflación estimada anual %</label><input type="number" id="inInflacion" value="80" min="0" max="300" step="1"></div>
+            <div class="col"><label>Ahorro actual</label><input type="text" id="inAhorro" value="80000" class="m"></div>
+        </div>
+        <button id="btnActualizar">🔄 Actualizar finanzas</button>
+    </div>
+
+    <!-- DEUDAS -->
+    <div class="card">
+        <h2>📋 Deudas <button id="btnAgregar" class="sm outline">+ Añadir</button></h2>
+        <div id="listaDeudas"></div>
+        <div class="flex" style="margin-top:8px">
+            <span><strong>Estrategia:</strong></span>
+            <button id="btnAvalancha" class="sm">Avalancha (tasa)</button>
+            <button id="btnSnowball" class="sm sec">Bola de Nieve</button>
+        </div>
+        <div class="msg" id="txtPrioridad"></div>
+    </div>
+
+    <!-- SIMULACIÓN -->
+    <div class="card">
+        <h2>🎛️ Simulación 48 meses</h2>
+        <div class="row">
+            <div class="col"><label>Pago extra $/mes</label><input type="text" id="inPagoExtra" value="20000" class="m"></div>
+            <div class="col"><label>% superávit a deuda</label><input type="range" id="inPorcentaje" min="0" max="100" value="70" step="5"><span id="valPorcentaje">70%</span></div>
+        </div>
+        <label style="margin-top:6px">☠️ Escenario inflacionario (ajusta ingresos/gastos)</label>
+        <select id="inEscenario" style="margin-bottom:8px">
+            <option value="0">Sin inflación (nominal)</option>
+            <option value="1" selected>Indexar ingresos y gastos por inflación</option>
+            <option value="2">Solo indexar ingresos (gastos fijos)</option>
+        </select>
+        <button id="btnSimular" class="sec" style="width:100%;margin-bottom:8px">📊 Ejecutar simulación</button>
+        <canvas id="grafico" width="400" height="220"></canvas>
+    </div>
+
+    <!-- RESUMEN -->
+    <div class="card">
+        <h2>📌 Resumen Ejecutivo</h2>
+        <div id="txtResumen" class="msg"></div>
+        <div id="txtAlerta" class="warn" style="font-size:0.7rem;margin-top:5px"></div>
+        <div id="txtProyeccion" class="msg" style="margin-top:5px"></div>
+    </div>
+    <div style="text-align:center;font-size:0.6rem;color:#6a7390;margin-top:16px">Asesor Premium Lite · Mercado Argentino · v2.0</div>
+</div>
+
+<script>
+// ============ UTILIDADES ============
+const $ = id => document.getElementById(id);
+const fm = v => { let n = parseFloat(v); return '$' + (isNaN(n) ? 0 : Math.round(n)).toLocaleString('es-AR'); };
+const pm = el => { let r = el.value.replace(/[$\s.]/g,'').replace(',','.'); return parseFloat(r) || 0; };
+const fme = el => { el.value = fm(pm(el)); };
+
+document.querySelectorAll('.m').forEach(i => {
+    i.addEventListener('blur', () => fme(i));
+    i.addEventListener('focus', () => { let v = pm(i); i.value = v || ''; });
+});
+
+// ============ ESTADO ============
+let deudas = [];
+let idCount = 4;
+let estrategia = 'avalancha';
+let ingreso = 250000, gastos = 120000, ahorro = 80000, inflacion = 80;
+let chart = null;
+
+function initDeudas() {
+    deudas = [
+        { id:1, nombre:'Tarjeta Visa', saldo:250000, tasa:45, tipo:'pesos', pagoMin:80000 },
+        { id:2, nombre:'Préstamo Personal', saldo:500000, tasa:25, tipo:'pesos', pagoMin:120000 },
+        { id:3, nombre:'Crédito UVA', saldo:350000, tasa:8, tipo:'uva', pagoMin:60000 }
+    ];
+    idCount = 4;
+}
+initDeudas();
+
+function totalDeuda() { return deudas.reduce((s,d)=>s+d.saldo,0); }
+function totalMinimos() { return deudas.reduce((s,d)=>s+d.pagoMin,0); }
+function superavit() { return ingreso - gastos - totalMinimos(); }
+function patrimonio() { return ahorro - totalDeuda(); }
+
+function inflacionMensual() { return Math.pow(1 + inflacion/100, 1/12) - 1; }
+
+function ordenar(lista, modo) {
+    return [...lista].sort((a,b) => {
+        if(modo==='avalancha') {
+            let ta = a.tipo==='uva' ? a.tasa + inflacion*0.5 : (a.tipo==='usd' ? a.tasa + 30 : a.tasa);
+            let tb = b.tipo==='uva' ? b.tasa + inflacion*0.5 : (b.tipo==='usd' ? b.tasa + 30 : b.tasa);
+            return tb - ta;
+        }
+        return a.saldo - b.saldo;
+    });
+}
+
+// ============ SIMULACIÓN CON INFLACIÓN ============
+function simular(modo, pagoExtra, pctSuperavit, meses, indexarIngresos, indexarGastos) {
+    let deudasSim = deudas.map(d => ({...d}));
+    let saldos = [];
+    let ingSim = ingreso;
+    let gasSim = gastos;
+    let infMen = inflacionMensual();
+    
+    for(let m=0; m<=meses; m++) {
+        let total = deudasSim.reduce((s,d)=>s+Math.max(0,d.saldo),0);
+        saldos.push(total);
+        if(total <= 0.1) break;
+        
+        if(m>0 && indexarIngresos) ingSim *= (1 + infMen);
+        if(m>0 && indexarGastos) gasSim *= (1 + infMen);
+        
+        let pagoBase = Math.max(0, ingSim - gasSim);
+        let supBase = ingSim - gasSim - deudasSim.reduce((s,d)=>s+Math.min(d.pagoMin,d.saldo),0);
+        let extra = pagoExtra;
+        if(supBase > 0) extra += supBase * (pctSuperavit/100);
+        
+        let orden = ordenar(deudasSim.filter(d=>d.saldo>0), modo);
+        
+        for(let d of deudasSim) {
+            if(d.saldo <= 0) continue;
+            let min = Math.min(d.pagoMin, d.saldo);
+            pagoBase -= min;
+            d.saldo -= min;
+            if(d.saldo < 0) d.saldo = 0;
+        }
+        if(pagoBase < 0) pagoBase = 0;
+        
+        let restante = extra + pagoBase;
+        for(let d of orden) {
+            if(restante <= 0) break;
+            if(d.saldo > 0) {
+                let aplicar = Math.min(restante, d.saldo);
+                d.saldo -= aplicar;
+                restante -= aplicar;
+            }
+        }
+        
+        for(let d of deudasSim) {
+            if(d.saldo <= 0) continue;
+            let tasaEf = d.tasa / 100;
+            if(d.tipo === 'uva') tasaEf += inflacion / 100;
+            let interes = d.saldo * (tasaEf / 12);
+            d.saldo += interes;
+        }
+    }
+    while(saldos.length <= meses) saldos.push(0);
+    return saldos.slice(0, meses+1);
+}
+
+// ============ RENDER ============
+function renderDeudas() {
+    let cont = $('listaDeudas');
+    if(!deudas.length) { cont.innerHTML = '<div style="padding:10px;text-align:center;color:#6a7390">Sin deudas</div>'; return; }
+    cont.innerHTML = deudas.map(d => {
+        let tag = d.tipo==='uva' ? '<span class="tag uva">UVA</span>' : (d.tipo==='usd' ? '<span class="tag usd">USD</span>' : '<span class="tag pesos">PESOS</span>');
+        return `<div class="deuda-item">
+            <div class="deuda-info"><span class="deuda-nombre">${d.nombre}</span> ${tag}<br><span class="deuda-dato">Saldo: ${fm(d.saldo)} | Tasa: ${d.tasa}% | Mín: ${fm(d.pagoMin)}</span></div>
+            <div><button class="sm outline" onclick="editarDeuda(${d.id})">✏️</button> <button class="sm del" onclick="eliminarDeuda(${d.id})">🗑️</button></div>
+        </div>`;
+    }).join('');
+}
+
+function actualizarUI() {
+    $('kpiPatrimonio').textContent = fm(patrimonio());
+    $('kpiFlujo').textContent = fm(ingreso - gastos);
+    $('kpiDeuda').textContent = fm(totalDeuda());
+    let sup = superavit();
+    $('kpiSuperavit').textContent = fm(sup);
+    $('txtSalud').textContent = sup >= 50000 ? 'Excelente' : (sup >= 0 ? 'Aceptable' : 'Crítica');
+    $('txtSalud').style.color = sup >= 0 ? '#d4af37' : '#c97e2a';
+    $('badgeEstrategia').textContent = estrategia === 'avalancha' ? 'Avalancha' : 'Bola Nieve';
+    $('txtInflacion').textContent = 'Inflación est.: ' + inflacion + '% anual';
+    
+    let ord = ordenar(deudas, estrategia);
+    $('txtPrioridad').innerHTML = '📌 Prioridad: ' + ord.map((d,i) => `${i+1}° ${d.nombre}`).join(' → ') || 'Sin deudas';
+    
+    let alerta = '';
+    let deudaAlta = deudas.find(d => d.tipo==='pesos' && d.tasa > 50);
+    let deudaUVA = deudas.find(d => d.tipo==='uva');
+    let deudaUSD = deudas.find(d => d.tipo==='usd');
+    if(deudaAlta) alerta += '⚠️ Tasa >50% en pesos: priorizar cancelación. ';
+    if(deudaUVA && inflacion > 60) alerta += '⚠️ UVA con inflación alta: crece rápido. ';
+    if(deudaUSD) alerta += '💱 Deuda en USD: considerar riesgo cambiario. ';
+    $('txtAlerta').textContent = alerta || '✅ Sin alertas críticas';
+    
+    let resumen = sup >= 0 ? `Superávit: ${fm(sup)}/mes. Aplique excedente a deuda prioritaria o fondo.` : `Déficit: ${fm(-sup)}/mes. Reduzca gastos o aumente ingresos.`;
+    if(totalDeuda() === 0) resumen = '🎉 Sin deudas. Libertad financiera.';
+    $('txtResumen').textContent = resumen;
+    
+    $('txtProyeccion').innerHTML = `📈 Con inflación del ${inflacion}% anual, los ingresos ${$('inEscenario').value!='0' ? 'se indexan' : 'no se ajustan'}. Priorice deudas con mayor tasa real.`;
+    
+    renderDeudas();
+    document.querySelectorAll('.m').forEach(fme);
+}
+
+function editarDeuda(id) {
+    let d = deudas.find(x=>x.id===id);
+    if(!d) return;
+    let nom = prompt('Nombre', d.nombre);
+    if(!nom) return;
+    let sal = parseFloat(prompt('Saldo', d.saldo));
+    let tas = parseFloat(prompt('Tasa %', d.tasa));
+    let min = parseFloat(prompt('Pago mínimo', d.pagoMin));
+    let tip = prompt('Tipo: pesos / uva / usd', d.tipo);
+    if(isNaN(sal)||isNaN(tas)||isNaN(min)) return;
+    d.nombre = nom; d.saldo = sal; d.tasa = tas; d.pagoMin = min;
+    d.tipo = ['pesos','uva','usd'].includes(tip) ? tip : 'pesos';
+    actualizarUI();
+    graficar();
+}
+
+function eliminarDeuda(id) { deudas = deudas.filter(d=>d.id!==id); actualizarUI(); graficar(); }
+
+// ============ GRÁFICO ============
+function graficar() {
+    let extra = pm($('inPagoExtra'));
+    let pct = parseInt($('inPorcentaje').value)/100;
+    let esc = parseInt($('inEscenario').value);
+    let idxIng = esc >= 1, idxGas = esc === 1;
+    
+    let ava = simular('avalancha', extra, pct, 48, idxIng, idxGas);
+    let sno = simular('snowball', extra, pct, 48, idxIng, idxGas);
+    
+    let ctx = $('grafico').getContext('2d');
+    if(chart) chart.destroy();
+    chart = new Chart(ctx, {
+        type:'line',
+        data:{
+            labels: Array.from({length:49},(_,i)=>i),
+            datasets:[
+                {label:'Avalancha',data:ava,borderColor:'#d4af37',tension:0.2,borderWidth:2,pointRadius:0},
+                {label:'Bola de Nieve',data:sno,borderColor:'#4a9eff',tension:0.2,borderWidth:2,pointRadius:0}
+            ]
+        },
+        options:{
+            responsive:true,
+            plugins:{legend:{labels:{color:'#e8edf5',font:{size:9},padding:10}}},
+            scales:{
+                y:{ticks:{color:'#8a93b0',callback:v=>fm(v)},grid:{color:'#1a1f2e'}},
+                x:{ticks:{color:'#8a93b0'},title:{display:true,text:'Meses',color:'#8a93b0'}}
+            }
+        }
+    });
+}
+
+// ============ EVENTOS ============
+$('btnActualizar').addEventListener('click', () => {
+    ingreso = pm($('inIngreso'));
+    gastos = pm($('inGastos'));
+    ahorro = pm($('inAhorro'));
+    inflacion = parseFloat($('inInflacion').value) || 80;
+    actualizarUI();
+    graficar();
+});
+
+$('btnAgregar').addEventListener('click', () => {
+    let nom = prompt('Nombre deuda', 'Deuda ' + idCount);
+    if(!nom) return;
+    let sal = parseFloat(prompt('Saldo', '100000'));
+    let tas = parseFloat(prompt('Tasa %', '30'));
+    let min = parseFloat(prompt('Pago mínimo', '30000'));
+    let tip = prompt('Tipo: pesos / uva / usd', 'pesos');
+    if(isNaN(sal)||isNaN(tas)||isNaN(min)) return;
+    deudas.push({id:idCount++, nombre:nom, saldo:sal, tasa:tas, tipo:['pesos','uva','usd'].includes(tip)?tip:'pesos', pagoMin:min});
+    actualizarUI();
+    graficar();
+});
+
+$('btnAvalancha').addEventListener('click', () => { estrategia='avalancha'; actualizarUI(); graficar(); });
+$('btnSnowball').addEventListener('click', () => { estrategia='snowball'; actualizarUI(); graficar(); });
+$('btnSimular').addEventListener('click', graficar);
+
+$('inPorcentaje').addEventListener('input', () => {
+    $('valPorcentaje').textContent = $('inPorcentaje').value + '%';
+    graficar();
+});
+
+$('inPagoExtra').addEventListener('blur', () => { fme($('inPagoExtra')); graficar(); });
+$('inEscenario').addEventListener('change', () => { actualizarUI(); graficar(); });
+
+// ============ INICIO ============
+actualizarUI();
+setTimeout(graficar, 300);
+</script>
+</body>
+       </html>
